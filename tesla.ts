@@ -15,7 +15,7 @@ exports.teslaLogin = async function(ws) {
   let page: puppeteer.Page;
 
   ws.on('message', async message => {
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 20; i++) {
       let msg = null;
       try {
         msg = await JSON.parse(message);
@@ -169,6 +169,7 @@ exports.teslaLogin = async function(ws) {
                 await submitForm2(passcode);
               } else {
                 ws.send('MFA');
+                return;
               }
             } else {
               await submitForm();

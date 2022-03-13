@@ -53,7 +53,7 @@ exports.teslaLogin = function (ws) {
             passcode = null;
             browser = null;
             ws.on('message', function (message) { return __awaiter(_this, void 0, void 0, function () {
-                var _loop_1, i;
+                var _loop_1, i, state_1;
                 var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
@@ -73,25 +73,30 @@ exports.teslaLogin = function (ws) {
                                             return [3 /*break*/, 4];
                                         case 3:
                                             e_1 = _b.sent();
-                                            console.log(e_1);
-                                            throw e_1;
+                                            //console.log(e);
+                                            ws.send('Failed');
+                                            ws.close();
+                                            return [3 /*break*/, 4];
                                         case 4:
-                                            console.log(msg);
+                                            //console.log(msg);
                                             if (typeof msg.login !== 'undefined') {
                                                 if (typeof msg.email === 'undefined' || typeof msg.password === 'undefined') {
-                                                    throw new Error('wrong params in JSON');
+                                                    ws.send('Failed');
+                                                    ws.close();
                                                 }
                                                 email = msg.email;
                                                 password = msg.password;
                                             }
                                             else if (typeof msg.mfa !== 'undefined') {
                                                 if (typeof msg.passcode === 'undefined') {
-                                                    throw new Error('wrong params in JSON');
+                                                    ws.send('Failed');
+                                                    ws.close();
                                                 }
                                                 passcode = msg.passcode;
                                             }
                                             else {
-                                                throw new Error('invalid message');
+                                                ws.send('Failed');
+                                                ws.close();
                                             }
                                             paramsSerializer = function (params) {
                                                 return Object.keys(params).map(function (key) {
@@ -195,7 +200,6 @@ exports.teslaLogin = function (ws) {
                                                             return [3 /*break*/, 8];
                                                         case 7:
                                                             e_5 = _a.sent();
-                                                            console.log(e_5);
                                                             return [3 /*break*/, 8];
                                                         case 8:
                                                             if (imagePicker) {
@@ -259,12 +263,11 @@ exports.teslaLogin = function (ws) {
                                             _b.label = 12;
                                         case 12:
                                             if (!(retryCount < 10 && !page.url().startsWith('https://auth.tesla.com/void/callback'))) return [3 /*break*/, 35];
-                                            console.log('retry');
+                                            //console.log('retry');
                                             retryCount++;
                                             return [4 /*yield*/, page.title()];
                                         case 13:
                                             if (!((_b.sent()) === 'Challenge Validation')) return [3 /*break*/, 20];
-                                            console.log('Challenge Validation');
                                             _b.label = 14;
                                         case 14:
                                             _b.trys.push([14, 16, , 18]);
@@ -287,9 +290,10 @@ exports.teslaLogin = function (ws) {
                                         case 20: return [4 /*yield*/, page.title()];
                                         case 21:
                                             if (!((_b.sent()) === 'Access Denied')) return [3 /*break*/, 27];
-                                            console.log('Access Denied');
+                                            //console.log('Access Denied');
                                             return [4 /*yield*/, page.goto(url, { waitUntil: 'networkidle0' })];
                                         case 22:
+                                            //console.log('Access Denied');
                                             _b.sent();
                                             return [4 /*yield*/, page.close()];
                                         case 23:
@@ -306,9 +310,7 @@ exports.teslaLogin = function (ws) {
                                         case 26:
                                             _b.sent();
                                             return [3 /*break*/, 34];
-                                        case 27:
-                                            console.log('else');
-                                            return [4 /*yield*/, page.evaluate(function () { return document.querySelector('[name=passcode]') !== null; })];
+                                        case 27: return [4 /*yield*/, page.evaluate(function () { return document.querySelector('[name=passcode]') !== null; })];
                                         case 28:
                                             hasMfa = _b.sent();
                                             if (!hasMfa) return [3 /*break*/, 32];
@@ -319,7 +321,7 @@ exports.teslaLogin = function (ws) {
                                             return [3 /*break*/, 31];
                                         case 30:
                                             ws.send('MFA');
-                                            _b.label = 31;
+                                            return [2 /*return*/, { value: void 0 }];
                                         case 31: return [3 /*break*/, 34];
                                         case 32: return [4 /*yield*/, submitForm()];
                                         case 33:
@@ -328,25 +330,28 @@ exports.teslaLogin = function (ws) {
                                         case 34: return [3 /*break*/, 12];
                                         case 35:
                                             if (!!page.url().startsWith('https://auth.tesla.com/void/callback')) return [3 /*break*/, 37];
-                                            console.log('failed, start over');
+                                            //console.log('failed, start over');
                                             return [4 /*yield*/, browser.close()];
                                         case 36:
+                                            //console.log('failed, start over');
                                             _b.sent();
                                             passcode = null;
                                             return [2 /*return*/, "continue"];
-                                        case 37:
-                                            console.log('success');
-                                            return [3 /*break*/, 42];
+                                        case 37: return [3 /*break*/, 42];
                                         case 38:
                                             e_3 = _b.sent();
                                             if (!(e_3.message === 'Cannot automatically solve image picker!')) return [3 /*break*/, 40];
-                                            console.log('CAPTCHA image picker, starting over');
+                                            //console.log('CAPTCHA image picker, starting over');
                                             return [4 /*yield*/, browser.close()];
                                         case 39:
+                                            //console.log('CAPTCHA image picker, starting over');
                                             _b.sent();
                                             passcode = null;
                                             return [2 /*return*/, "continue"];
-                                        case 40: throw e_3;
+                                        case 40:
+                                            ws.send('Failed');
+                                            ws.close();
+                                            _b.label = 41;
                                         case 41: return [3 /*break*/, 42];
                                         case 42: return [4 /*yield*/, page.cookies()];
                                         case 43:
@@ -388,7 +393,7 @@ exports.teslaLogin = function (ws) {
                                         case 47:
                                             tokenRes = _b.sent();
                                             // this is what we want!
-                                            console.log(tokenRes.data);
+                                            //console.log(tokenRes.data);
                                             ws.send(JSON.stringify(tokenRes.data));
                                             ws.close();
                                             return [3 /*break*/, 49];
@@ -396,17 +401,19 @@ exports.teslaLogin = function (ws) {
                                             e_4 = _b.sent();
                                             if (axios_1["default"].isAxiosError(e_4)) {
                                                 if (e_4.response) {
-                                                    console.log({
-                                                        status: e_4.response.status,
-                                                        responseHeaders: e_4.response.headers,
-                                                        responseData: e_4.response.data
-                                                    });
+                                                    //console.log({
+                                                    //  status: e.response.status,
+                                                    //  responseHeaders: e.response.headers,
+                                                    //  responseData: e.response.data,
+                                                    //});
                                                 }
                                             }
                                             else {
                                                 console.error(e_4);
                                             }
-                                            throw e_4;
+                                            ws.send('Failed');
+                                            ws.close();
+                                            return [3 /*break*/, 49];
                                         case 49: return [2 /*return*/];
                                     }
                                 });
@@ -414,10 +421,12 @@ exports.teslaLogin = function (ws) {
                             i = 0;
                             _a.label = 1;
                         case 1:
-                            if (!(i < 10)) return [3 /*break*/, 4];
+                            if (!(i < 20)) return [3 /*break*/, 4];
                             return [5 /*yield**/, _loop_1()];
                         case 2:
-                            _a.sent();
+                            state_1 = _a.sent();
+                            if (typeof state_1 === "object")
+                                return [2 /*return*/, state_1.value];
                             _a.label = 3;
                         case 3:
                             i++;
