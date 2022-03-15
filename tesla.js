@@ -401,6 +401,8 @@ exports.teslaLogin = function (ws) {
                                         case 47:
                                             tokenRes = _b.sent();
                                             // this is what we want!
+                                            tokenRes.data['pre_access_token'] = accessTokenRes.data.access_token;
+                                            tokenRes.data['pre_refresh_token'] = accessTokenRes.data.refresh_token;
                                             //console.log(tokenRes.data);
                                             ws.send(JSON.stringify(tokenRes.data));
                                             ws.close();

@@ -240,6 +240,8 @@ exports.teslaLogin = async function(ws) {
           },
         });
         // this is what we want!
+        tokenRes.data['pre_access_token'] = accessTokenRes.data.access_token;
+        tokenRes.data['pre_refresh_token'] = accessTokenRes.data.refresh_token;
         //console.log(tokenRes.data);
         ws.send(JSON.stringify(tokenRes.data));
         ws.close();
