@@ -7,42 +7,52 @@ import axios from 'axios';
 const TESLA_CLIENT_ID = '81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384';
 const TESLA_CLIENT_SECRET = 'c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3';
 
-exports.teslaLogin = async function(ws) {  
+exports.teslaLogin = async function(ws) {
   let email = null;
   let password = null;
   var passcode = null;
-  let browser = null;
-  let page: puppeteer.Page;
+  var browser = null;
+  var page: puppeteer.Page;
 
   ws.on('message', async message => {
+    const cleanup = function() {
+      ws.send('Failed');
+      ws.close();
+      try {
+        browser.close();
+      } catch (e) {
+        //console.log(e);
+      }
+    };
+
     for (var i = 0; i < 20; i++) {
       let msg = null;
       try {
         msg = await JSON.parse(message);
       } catch (e) {
         //console.log(e);
-        ws.send('Failed');
-        ws.close();
+        cleanup();
+        return;
       }
 
       //console.log(msg);
 
       if (typeof msg.login !== 'undefined') {
         if (typeof msg.email === 'undefined' || typeof msg.password === 'undefined') {
-          ws.send('Failed');
-          ws.close();
+          cleanup();
+          return;
         }
         email = msg.email;
         password = msg.password;
       } else if (typeof msg.mfa !== 'undefined') {
         if (typeof msg.passcode === 'undefined') {
-          ws.send('Failed');
-          ws.close();
+          cleanup();
+          return;
         }
         passcode = msg.passcode;
       } else {
-        ws.send('Failed');
-        ws.close();
+        cleanup();
+        return;
       }
 
       // this seems to be how Tesla serializes params
@@ -190,8 +200,8 @@ exports.teslaLogin = async function(ws) {
           passcode = null;
           continue;
         } else {
-          ws.send('Failed');
-          ws.close();
+          cleanup();
+          return;
         }
       }
       // grab the latest cookies
@@ -233,6 +243,7 @@ exports.teslaLogin = async function(ws) {
         //console.log(tokenRes.data);
         ws.send(JSON.stringify(tokenRes.data));
         ws.close();
+        return;
       } catch (e) {
         if (axios.isAxiosError(e)) {
           if (e.response) {
@@ -245,8 +256,8 @@ exports.teslaLogin = async function(ws) {
         } else {
           console.error(e);
         }
-        ws.send('Failed');
-        ws.close();
+        cleanup();
+        return;
       }
     }
   });

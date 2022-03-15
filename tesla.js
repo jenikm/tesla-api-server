@@ -53,11 +53,21 @@ exports.teslaLogin = function (ws) {
             passcode = null;
             browser = null;
             ws.on('message', function (message) { return __awaiter(_this, void 0, void 0, function () {
-                var _loop_1, i, state_1;
+                var cleanup, _loop_1, i, state_1;
                 var _this = this;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
+                            cleanup = function () {
+                                ws.send('Failed');
+                                ws.close();
+                                try {
+                                    browser.close();
+                                }
+                                catch (e) {
+                                    //console.log(e);
+                                }
+                            };
                             _loop_1 = function () {
                                 var msg, e_1, paramsSerializer, redirect_uri, state, code_verifier, code_challenge, queryParams, queryString, url, setUpPage, handleCaptcha, submitForm, submitForm2, retryCount, e_2, hasMfa, e_3, cookies, callbackUrl, code, cookieString, accessTokenRes, tokenRes, e_4;
                                 return __generator(this, function (_b) {
@@ -74,29 +84,28 @@ exports.teslaLogin = function (ws) {
                                         case 3:
                                             e_1 = _b.sent();
                                             //console.log(e);
-                                            ws.send('Failed');
-                                            ws.close();
-                                            return [3 /*break*/, 4];
+                                            cleanup();
+                                            return [2 /*return*/, { value: void 0 }];
                                         case 4:
                                             //console.log(msg);
                                             if (typeof msg.login !== 'undefined') {
                                                 if (typeof msg.email === 'undefined' || typeof msg.password === 'undefined') {
-                                                    ws.send('Failed');
-                                                    ws.close();
+                                                    cleanup();
+                                                    return [2 /*return*/, { value: void 0 }];
                                                 }
                                                 email = msg.email;
                                                 password = msg.password;
                                             }
                                             else if (typeof msg.mfa !== 'undefined') {
                                                 if (typeof msg.passcode === 'undefined') {
-                                                    ws.send('Failed');
-                                                    ws.close();
+                                                    cleanup();
+                                                    return [2 /*return*/, { value: void 0 }];
                                                 }
                                                 passcode = msg.passcode;
                                             }
                                             else {
-                                                ws.send('Failed');
-                                                ws.close();
+                                                cleanup();
+                                                return [2 /*return*/, { value: void 0 }];
                                             }
                                             paramsSerializer = function (params) {
                                                 return Object.keys(params).map(function (key) {
@@ -349,9 +358,8 @@ exports.teslaLogin = function (ws) {
                                             passcode = null;
                                             return [2 /*return*/, "continue"];
                                         case 40:
-                                            ws.send('Failed');
-                                            ws.close();
-                                            _b.label = 41;
+                                            cleanup();
+                                            return [2 /*return*/, { value: void 0 }];
                                         case 41: return [3 /*break*/, 42];
                                         case 42: return [4 /*yield*/, page.cookies()];
                                         case 43:
@@ -396,7 +404,7 @@ exports.teslaLogin = function (ws) {
                                             //console.log(tokenRes.data);
                                             ws.send(JSON.stringify(tokenRes.data));
                                             ws.close();
-                                            return [3 /*break*/, 49];
+                                            return [2 /*return*/, { value: void 0 }];
                                         case 48:
                                             e_4 = _b.sent();
                                             if (axios_1["default"].isAxiosError(e_4)) {
@@ -411,9 +419,8 @@ exports.teslaLogin = function (ws) {
                                             else {
                                                 console.error(e_4);
                                             }
-                                            ws.send('Failed');
-                                            ws.close();
-                                            return [3 /*break*/, 49];
+                                            cleanup();
+                                            return [2 /*return*/, { value: void 0 }];
                                         case 49: return [2 /*return*/];
                                     }
                                 });
